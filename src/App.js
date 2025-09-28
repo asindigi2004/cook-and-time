@@ -1,38 +1,10 @@
-<<<<<<< Updated upstream
-import logo from './logo.svg';
-import './index.css'; // make sure this points to your Tailwind-imported CSS
-import React, { useState } from "react";
-import IngredientInput from "./components/IngredientInput";
-
-function App() {
-  const [ingredients, setIngredients] = useState([]);
-
-  const handleSearch = (ingArray) => {
-    setIngredients(ingArray);
-    console.log("Searching for recipes using:", ingArray);
-  }
-
-  return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-4 text-center">Cook & Time</h1>
-      <IngredientInput onSearch = {handleSearch}/>
-
-      <div className='mt-6'>
-        {ingredients.length > 0 && (
-          <p className='text-grey-700'>
-            You searched for: <strong>{ingredients.join(",")}</strong>
-          </p>
-        )}
-      </div>
-      
-=======
 // src/App.js
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import IngredientInput from "./components/IngredientInput"; // Dev A component
+import IngredientInput from "./components/IngredientInput";
 import "./index.css"; // Tailwind CSS
 
-// Recipe card component
+// RecipeCard component
 function RecipeCard({ recipe, onSelect }) {
   return (
     <div
@@ -52,13 +24,16 @@ function RecipeCard({ recipe, onSelect }) {
 const SpoonacularService = {
   async findByIngredients(ingredients, number = 5) {
     try {
-      const res = await axios.get("https://api.spoonacular.com/recipes/findByIngredients", {
-        params: {
-          ingredients: ingredients.join(","),
-          number,
-          apiKey: process.env.REACT_APP_SPOONACULAR_KEY,
-        },
-      });
+      const res = await axios.get(
+        "https://api.spoonacular.com/recipes/findByIngredients",
+        {
+          params: {
+            ingredients: ingredients.join(","),
+            number,
+            apiKey: process.env.REACT_APP_SPOONACULAR_KEY,
+          },
+        }
+      );
       return res.data;
     } catch (error) {
       return { error: error.message || "Failed to fetch recipes" };
@@ -99,8 +74,16 @@ function App() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [instructions, setInstructions] = useState([]);
   const [error, setError] = useState(null);
+  const [ingredients, setIngredients] = useState([]);
 
-  // fetch recipes dynamically
+  // Update ingredient list when user searches
+  const handleSearch = (ingArray) => {
+    setIngredients(ingArray);
+    console.log("Searching for recipes using:", ingArray);
+    fetchRecipes(ingArray);
+  };
+
+  // Fetch recipes from Spoonacular
   const fetchRecipes = async (ingredients) => {
     const result = await SpoonacularService.findByIngredients(ingredients, 5);
     if (result.error) {
@@ -112,7 +95,7 @@ function App() {
     }
   };
 
-  // fetch instructions and info for a selected recipe
+  // Fetch instructions and info for selected recipe
   const handleSelectRecipe = async (recipeId) => {
     const instr = await SpoonacularService.getAnalyzedInstructions(recipeId);
     const info = await SpoonacularService.getRecipeInformation(recipeId);
@@ -137,8 +120,15 @@ function App() {
         </p>
       </header>
 
-      {/* Ingredient input from Dev A */}
-      <IngredientInput onSearch={fetchRecipes} />
+      {/* Ingredient input */}
+      <IngredientInput onSearch={handleSearch} />
+
+      {/* Show searched ingredients */}
+      {ingredients.length > 0 && (
+        <div className="mt-6 text-gray-700">
+          You searched for: <strong>{ingredients.join(", ")}</strong>
+        </div>
+      )}
 
       {/* Error display */}
       {error && <p className="text-red-500 mt-4">{error}</p>}
@@ -154,16 +144,21 @@ function App() {
       {selectedRecipe && instructions.length > 0 && (
         <div className="mt-8 bg-white p-6 rounded shadow w-full max-w-xl">
           <h2 className="text-2xl font-bold mb-2">{selectedRecipe.title}</h2>
-          <img src={selectedRecipe.image} alt={selectedRecipe.title} className="rounded mb-4" />
+          <img
+            src={selectedRecipe.image}
+            alt={selectedRecipe.title}
+            className="rounded mb-4"
+          />
           <h3 className="font-semibold mb-1">Instructions:</h3>
           <ol className="list-decimal ml-5">
             {instructions[0]?.steps?.map((step) => (
-              <li key={step.number} className="mb-1">{step.step}</li>
+              <li key={step.number} className="mb-1">
+                {step.step}
+              </li>
             ))}
           </ol>
         </div>
       )}
->>>>>>> Stashed changes
     </div>
   );
 }
